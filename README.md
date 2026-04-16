@@ -81,6 +81,27 @@ Ben bu projede Supabase'i aktif olarak kullanmadim, ama ileride web tarafina bag
 
 Ornek degerler `.env.example` dosyasinda var.
 
+## Supabase SQL Kurulumu (Yapistirilacak Dosya)
+
+Supabase tarafinda yapistiracagin SQL dosyasi:
+
+- [supabase/schema.sql](supabase/schema.sql)
+
+Adimlar:
+
+1. Supabase projesini ac.
+2. Soldan SQL Editor bolumune gir.
+3. New Query sec.
+4. [supabase/schema.sql](supabase/schema.sql) dosyasinin tamamini kopyalayıp query alanina yapistir.
+5. Run tusuna bas.
+
+Bu script su yapilari olusturur:
+
+- `products` tablosu
+- `stock_transactions` tablosu
+- `v_low_stock` view'i
+- Ornek seed veriler
+
 ## Rapor Icın Kullanilabilecek Basliklar
 
 - Sistem tanitimi

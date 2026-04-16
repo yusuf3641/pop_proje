@@ -46,3 +46,17 @@ cmake --build build
 ## Environment Variables
 
 The project includes a `.env.example` file with Supabase variables for possible future integration.
+
+## Supabase SQL Setup
+
+SQL file to paste into Supabase SQL Editor:
+
+- [supabase/schema.sql](supabase/schema.sql)
+
+Steps:
+
+1. Open your Supabase project.
+2. Go to SQL Editor.
+3. Click New Query.
+4. Paste the full content of [supabase/schema.sql](supabase/schema.sql).
+5. Click Run.
