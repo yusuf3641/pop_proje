@@ -3,15 +3,17 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Inventory Management System</title>
+  <title>Inventory Demo Panel</title>
   <style>
     :root {
-      --bg: #f4f7f1;
+      --bg: #f2f4ed;
       --card: #ffffff;
-      --text: #1f2a1f;
-      --muted: #4d5a4e;
-      --accent: #2e6f40;
-      --border: #d9e2d6;
+      --text: #1d2b1f;
+      --muted: #5f6e60;
+      --accent: #2f6b45;
+      --accent-2: #16522f;
+      --danger: #b53b3b;
+      --line: #d9e0d3;
     }
 
     * { box-sizing: border-box; }
@@ -19,76 +21,444 @@
     body {
       margin: 0;
       font-family: "Trebuchet MS", "Segoe UI", sans-serif;
-      background: radial-gradient(circle at top left, #e8f0e7, var(--bg));
       color: var(--text);
+      background:
+        radial-gradient(circle at 15% 8%, #e7f0df 0%, #f2f4ed 42%),
+        radial-gradient(circle at 90% 90%, #e2ede8 0%, #f2f4ed 38%);
       min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .top {
+      background: linear-gradient(135deg, #2f6b45, #3f8762);
+      color: #f6fff8;
+      border-radius: 14px;
+      padding: 18px;
+      box-shadow: 0 12px 24px rgba(22, 55, 36, 0.18);
+      margin-bottom: 14px;
+    }
+
+    .top h1 {
+      margin: 0;
+      font-size: clamp(24px, 3.8vw, 34px);
+      letter-spacing: 0.3px;
+    }
+
+    .top p {
+      margin: 8px 0 0;
+      line-height: 1.5;
+      color: #ddf2e5;
+    }
+
+    .grid {
       display: grid;
-      place-items: center;
-      padding: 24px;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 14px;
     }
 
     .card {
-      width: min(780px, 100%);
       background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 28px;
-      box-shadow: 0 14px 30px rgba(26, 44, 28, 0.12);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
     }
 
-    h1 {
-      margin: 0 0 10px;
-      font-size: clamp(26px, 3.8vw, 38px);
-      color: var(--accent);
-      letter-spacing: 0.2px;
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 10px;
     }
 
-    p {
-      margin: 0 0 12px;
-      line-height: 1.6;
-      color: var(--muted);
-    }
-
-    ul {
-      margin: 8px 0 0;
-      padding-left: 22px;
-      line-height: 1.6;
-      color: var(--text);
-    }
-
-    .footer {
-      margin-top: 18px;
-      font-size: 14px;
-      color: #667466;
-    }
-
-    code {
-      background: #eef4eb;
-      border: 1px solid #d8e3d5;
-      padding: 2px 6px;
-      border-radius: 6px;
+    label {
+      display: block;
       font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 5px;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ced8c8;
+      border-radius: 8px;
+      font: inherit;
+      color: var(--text);
+      background: #fbfdf9;
+    }
+
+    button {
+      border: none;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font: inherit;
+      cursor: pointer;
+    }
+
+    .btn {
+      background: var(--accent);
+      color: #fff;
+      transition: transform 0.15s ease, background 0.2s ease;
+    }
+
+    .btn:hover {
+      background: var(--accent-2);
+      transform: translateY(-1px);
+    }
+
+    .btn-outline {
+      background: #f0f6ef;
+      color: #234d33;
+      border: 1px solid #cddccf;
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .stat {
+      border: 1px solid #d4ded0;
+      border-radius: 10px;
+      padding: 10px;
+      background: #f9fcf7;
+    }
+
+    .stat small {
+      color: #617061;
+      display: block;
+      margin-bottom: 4px;
+      font-size: 12px;
+    }
+
+    .stat strong {
+      font-size: 20px;
+      color: #1c4029;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    th, td {
+      text-align: left;
+      padding: 9px;
+      border-bottom: 1px solid #e4ece1;
+    }
+
+    th {
+      color: #4e5f50;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+
+    .pill {
+      border-radius: 999px;
+      padding: 3px 8px;
+      font-size: 12px;
+      display: inline-block;
+      background: #ecf4ec;
+      color: #2a593c;
+      border: 1px solid #d3e2d3;
+    }
+
+    .danger {
+      color: var(--danger);
+      font-weight: 700;
+    }
+
+    .ok {
+      color: #2d6b38;
+      font-weight: 700;
+    }
+
+    .status {
+      margin-top: 8px;
+      min-height: 22px;
+      font-size: 14px;
+      color: #4f5f4e;
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    @media (max-width: 920px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+      .stats {
+        grid-template-columns: 1fr;
+      }
+      .row {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
 <body>
-  <main class="card">
-    <h1>Inventory Management System</h1>
-    <p>
-      Bu sayfa Vercel yayini icin eklendi. Projenin asil kismi C++ tarafinda bir OOP
-      konsol uygulamasi olarak gelistirildi.
-    </p>
-    <p>Bu depoda bulunan ana dosyalar:</p>
-    <ul>
-      <li><code>src/main.cpp</code> - Menu ve uygulama akisi</li>
-      <li><code>src/Inventory.cpp</code> - Stok islemleri</li>
-      <li><code>include/models.hpp</code> - Sinif modelleri</li>
-      <li><code>README.md</code> - Turkce rapor/kurulum notlari</li>
-    </ul>
-    <p class="footer">
-      Not: Daha sonra istenirse bu yapi React/Vite arayuzu ve Supabase sorgulari ile
-      genisletilebilir.
-    </p>
-  </main>
+  <div class="container">
+    <section class="top">
+      <h1>Inventory Management System Demo</h1>
+      <p>Bu panel ders projesi icin sade tutuldu. Veriler Supabase tablosundan okunur, yeni urun eklenir ve dusuk stoklar gorulur.</p>
+    </section>
+
+    <div class="grid">
+      <section class="card">
+        <div class="toolbar">
+          <button class="btn" id="btnRefresh">Listeyi Yenile</button>
+          <button class="btn-outline" id="btnLoadLow">Dusuk Stoklari Goster</button>
+        </div>
+
+        <div class="stats">
+          <div class="stat">
+            <small>Toplam Urun Cesidi</small>
+            <strong id="statTotal">0</strong>
+          </div>
+          <div class="stat">
+            <small>Toplam Stok Adedi</small>
+            <strong id="statQty">0</strong>
+          </div>
+          <div class="stat">
+            <small>Dusuk Stok Sayisi</small>
+            <strong id="statLow">0</strong>
+          </div>
+        </div>
+
+        <div style="overflow:auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>Kod</th>
+                <th>Ad</th>
+                <th>Kategori</th>
+                <th>Miktar</th>
+                <th>Min</th>
+                <th>Fiyat</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyProducts"></tbody>
+          </table>
+        </div>
+        <p class="status" id="status"></p>
+      </section>
+
+      <section class="card">
+        <h3 style="margin-top:0;">Yeni Urun Ekle</h3>
+
+        <div class="row">
+          <div>
+            <label for="fCode">Urun Kodu</label>
+            <input id="fCode" placeholder="ORN: FOOD-002" />
+          </div>
+          <div>
+            <label for="fName">Urun Adi</label>
+            <input id="fName" placeholder="ORN: Bread" />
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label for="fCategory">Kategori</label>
+            <select id="fCategory">
+              <option value="electronics">electronics</option>
+              <option value="food">food</option>
+              <option value="office">office</option>
+            </select>
+          </div>
+          <div>
+            <label for="fSupplier">Tedarikci</label>
+            <input id="fSupplier" placeholder="ORN: Demo Supplier" />
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label for="fPrice">Birim Fiyat</label>
+            <input id="fPrice" type="number" step="0.01" value="10" />
+          </div>
+          <div>
+            <label for="fQty">Miktar</label>
+            <input id="fQty" type="number" value="1" />
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label for="fMin">Min Stok</label>
+            <input id="fMin" type="number" value="5" />
+          </div>
+          <div>
+            <label>&nbsp;</label>
+            <button class="btn" id="btnAdd" style="width:100%;">Urunu Kaydet</button>
+          </div>
+        </div>
+
+        <p class="muted">Not: Bu web panel sadece demonstrasyon icindir. Ana OOP proje C++ kodlari depoda korunmustur.</p>
+      </section>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const SUPABASE_URL = "https://gqltryrmtetlaphkfiss.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_g_Xz6hyKbRA8eXksF7mymA_VZxl7w_-";
+
+    const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    const tbody = document.getElementById("tbodyProducts");
+    const statusEl = document.getElementById("status");
+
+    const statTotal = document.getElementById("statTotal");
+    const statQty = document.getElementById("statQty");
+    const statLow = document.getElementById("statLow");
+
+    function setStatus(message, isError = false) {
+      statusEl.textContent = message;
+      statusEl.className = "status " + (isError ? "danger" : "ok");
+    }
+
+    function formatMoney(value) {
+      return Number(value || 0).toFixed(2) + " TL";
+    }
+
+    function updateStats(products) {
+      const totalProducts = products.length;
+      const totalQty = products.reduce((sum, p) => sum + Number(p.quantity || 0), 0);
+      const lowStock = products.filter((p) => Number(p.quantity) <= Number(p.min_stock)).length;
+
+      statTotal.textContent = String(totalProducts);
+      statQty.textContent = String(totalQty);
+      statLow.textContent = String(lowStock);
+    }
+
+    function renderProducts(products) {
+      tbody.innerHTML = "";
+      if (!products.length) {
+        tbody.innerHTML = '<tr><td colspan="6" class="muted">Kayit bulunamadi.</td></tr>';
+        return;
+      }
+
+      for (const p of products) {
+        const isLow = Number(p.quantity) <= Number(p.min_stock);
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td><span class="pill">${p.product_code}</span></td>
+          <td>${p.name}</td>
+          <td>${p.category}</td>
+          <td class="${isLow ? "danger" : ""}">${p.quantity}</td>
+          <td>${p.min_stock}</td>
+          <td>${formatMoney(p.unit_price)}</td>
+        `;
+        tbody.appendChild(row);
+      }
+    }
+
+    async function loadProducts() {
+      setStatus("Veriler yukleniyor...");
+      const { data, error } = await client
+        .from("products")
+        .select("id,product_code,name,category,quantity,min_stock,unit_price")
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        setStatus("Veri cekilirken hata: " + error.message, true);
+        return;
+      }
+
+      const products = data || [];
+      renderProducts(products);
+      updateStats(products);
+      setStatus("Liste guncellendi.");
+    }
+
+    async function loadLowStock() {
+      setStatus("Dusuk stoklar cekiliyor...");
+      const { data, error } = await client
+        .from("v_low_stock")
+        .select("id,product_code,name,category,quantity,min_stock")
+        .order("missing_qty", { ascending: false });
+
+      if (error) {
+        setStatus("Dusuk stok sorgusunda hata: " + error.message, true);
+        return;
+      }
+
+      const lowProducts = (data || []).map((x) => ({
+        ...x,
+        unit_price: 0
+      }));
+
+      renderProducts(lowProducts);
+      statLow.textContent = String(lowProducts.length);
+      setStatus("Dusuk stok listesi gosterildi.");
+    }
+
+    function collectForm() {
+      return {
+        product_code: document.getElementById("fCode").value.trim(),
+        name: document.getElementById("fName").value.trim(),
+        category: document.getElementById("fCategory").value,
+        supplier: document.getElementById("fSupplier").value.trim(),
+        unit_price: Number(document.getElementById("fPrice").value || 0),
+        quantity: Number(document.getElementById("fQty").value || 0),
+        min_stock: Number(document.getElementById("fMin").value || 0)
+      };
+    }
+
+    function validateProduct(p) {
+      if (!p.product_code || !p.name || !p.supplier) {
+        return "Kod, ad ve tedarikci zorunludur.";
+      }
+      if (p.unit_price < 0 || p.quantity < 0 || p.min_stock < 0) {
+        return "Sayisal alanlar negatif olamaz.";
+      }
+      return "";
+    }
+
+    async function addProduct() {
+      const product = collectForm();
+      const validationError = validateProduct(product);
+      if (validationError) {
+        setStatus(validationError, true);
+        return;
+      }
+
+      setStatus("Urun ekleniyor...");
+      const { error } = await client.from("products").insert([product]);
+
+      if (error) {
+        setStatus("Urun eklenemedi: " + error.message, true);
+        return;
+      }
+
+      setStatus("Urun basariyla eklendi.");
+      await loadProducts();
+    }
+
+    document.getElementById("btnRefresh").addEventListener("click", loadProducts);
+    document.getElementById("btnLoadLow").addEventListener("click", loadLowStock);
+    document.getElementById("btnAdd").addEventListener("click", addProduct);
+
+    loadProducts();
+  </script>
 </body>
 </html>

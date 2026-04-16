@@ -54,6 +54,45 @@ create index if not exists idx_products_quantity on public.products(quantity);
 create index if not exists idx_transactions_product_id on public.stock_transactions(product_id);
 create index if not exists idx_transactions_created_at on public.stock_transactions(created_at desc);
 
+alter table public.products enable row level security;
+alter table public.stock_transactions enable row level security;
+
+drop policy if exists products_select_anon on public.products;
+create policy products_select_anon
+on public.products
+for select
+to anon
+using (true);
+
+drop policy if exists products_insert_anon on public.products;
+create policy products_insert_anon
+on public.products
+for insert
+to anon
+with check (true);
+
+drop policy if exists products_update_anon on public.products;
+create policy products_update_anon
+on public.products
+for update
+to anon
+using (true)
+with check (true);
+
+drop policy if exists stock_transactions_select_anon on public.stock_transactions;
+create policy stock_transactions_select_anon
+on public.stock_transactions
+for select
+to anon
+using (true);
+
+drop policy if exists stock_transactions_insert_anon on public.stock_transactions;
+create policy stock_transactions_insert_anon
+on public.stock_transactions
+for insert
+to anon
+with check (true);
+
 -- Optional view for quick dashboard usage
 create or replace view public.v_low_stock as
 select
@@ -82,4 +121,4 @@ from public.products
 where product_code in ('ELEC-001', 'FOOD-001', 'OFF-001')
 on conflict do nothing;
 
--- RLS can be enabled later when auth rules are defined.
+-- Note: Demo icin anon policy acik tutuldu. Uretimde stricter policy kullanin.

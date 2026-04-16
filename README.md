@@ -101,6 +101,12 @@ Bu script su yapilari olusturur:
 - `stock_transactions` tablosu
 - `v_low_stock` view'i
 - Ornek seed veriler
+- Demo panel icin gerekli RLS policy ayarlari
+
+Web demo notu:
+
+- Vercel uzerindeki `index.html` paneli Supabase'den urunleri listeler ve yeni urun ekler.
+- Eger schema daha once calistirildiysa, policy guncellemeleri icin scripti tekrar calistirabilirsin.
 
 ## Rapor Icın Kullanilabilecek Basliklar
 
