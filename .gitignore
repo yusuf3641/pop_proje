@@ -4,6 +4,7 @@ out/
 *.obj
 *.exe
 *.out
+inventory_system
 inventory_data.db
 .env.local
 .DS_Store
