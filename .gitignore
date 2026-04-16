@@ -1,0 +1,9 @@
+build/
+out/
+*.o
+*.obj
+*.exe
+*.out
+inventory_data.db
+.env.local
+.DS_Store
