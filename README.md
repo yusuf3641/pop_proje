@@ -107,6 +107,9 @@ Web demo notu:
 
 - Vercel uzerindeki `index.html` paneli Supabase'den urunleri listeler ve yeni urun ekler.
 - Eger schema daha once calistirildiysa, policy guncellemeleri icin scripti tekrar calistirabilirsin.
+- Web panelde satis, stok artirma, silme ve islem gecmisi de vardir.
+- Silme islemi veriyi tamamen yok etmek yerine `is_active=false` olarak pasife alir; boylece gecmis kayitlar korunur.
+- Terminaldeki `Kaydet ve cik` mantigi webde yoktur; browser paneli anlik calisir.
 
 ## Rapor Icın Kullanilabilecek Basliklar
 

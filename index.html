@@ -117,6 +117,22 @@
       border: 1px solid #cddccf;
     }
 
+    .mini-btn {
+      background: #eef4eb;
+      color: #234d33;
+      border: 1px solid #cedccf;
+      padding: 6px 10px;
+      font-size: 12px;
+      margin-right: 6px;
+      margin-bottom: 4px;
+    }
+
+    .mini-btn.danger {
+      background: #fff1f1;
+      color: #9b2f2f;
+      border-color: #efcccc;
+    }
+
     .toolbar {
       display: flex;
       gap: 8px;
@@ -201,6 +217,12 @@
       font-size: 13px;
     }
 
+    .section-title {
+      margin: 16px 0 10px;
+      font-size: 18px;
+      color: #234d33;
+    }
+
     @media (max-width: 920px) {
       .grid {
         grid-template-columns: 1fr;
@@ -226,6 +248,9 @@
         <div class="toolbar">
           <button class="btn" id="btnRefresh">Listeyi Yenile</button>
           <button class="btn-outline" id="btnLoadLow">Dusuk Stoklari Goster</button>
+          <button class="btn-outline" id="btnHistory">Islem Gecmisi</button>
+          <button class="btn-outline" id="btnSummary">Ozet</button>
+          <button class="btn-outline" id="btnResetForm">Formu Temizle</button>
         </div>
 
         <div class="stats">
@@ -253,12 +278,32 @@
                 <th>Miktar</th>
                 <th>Min</th>
                 <th>Fiyat</th>
+                <th>Islem</th>
               </tr>
             </thead>
             <tbody id="tbodyProducts"></tbody>
           </table>
         </div>
         <p class="status" id="status"></p>
+
+        <div id="historySection" style="display:none; margin-top: 18px;">
+          <h3 class="section-title">Islem Gecmisi</h3>
+          <div style="overflow:auto;">
+            <table>
+              <thead>
+                <tr>
+                  <th>Tarih</th>
+                  <th>Urun</th>
+                  <th>Islem</th>
+                  <th>Miktar</th>
+                  <th>Tutar</th>
+                  <th>Not</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyTransactions"></tbody>
+            </table>
+          </div>
+        </div>
       </section>
 
       <section class="card">
@@ -325,11 +370,16 @@
     const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     const tbody = document.getElementById("tbodyProducts");
+    const tbodyTransactions = document.getElementById("tbodyTransactions");
     const statusEl = document.getElementById("status");
+    const historySection = document.getElementById("historySection");
 
     const statTotal = document.getElementById("statTotal");
     const statQty = document.getElementById("statQty");
     const statLow = document.getElementById("statLow");
+
+    let allProducts = [];
+    let productsIndex = new Map();
 
     function setStatus(message, isError = false) {
       statusEl.textContent = message;
@@ -353,7 +403,7 @@
     function renderProducts(products) {
       tbody.innerHTML = "";
       if (!products.length) {
-        tbody.innerHTML = '<tr><td colspan="6" class="muted">Kayit bulunamadi.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" class="muted">Kayit bulunamadi.</td></tr>';
         return;
       }
 
@@ -367,8 +417,36 @@
           <td class="${isLow ? "danger" : ""}">${p.quantity}</td>
           <td>${p.min_stock}</td>
           <td>${formatMoney(p.unit_price)}</td>
+          <td>
+            <button class="mini-btn" data-action="sell" data-id="${p.id}">Sat</button>
+            <button class="mini-btn" data-action="restock" data-id="${p.id}">Stok Ekle</button>
+            <button class="mini-btn danger" data-action="delete" data-id="${p.id}">Sil</button>
+          </td>
         `;
         tbody.appendChild(row);
+      }
+    }
+
+    function renderTransactions(transactions) {
+      tbodyTransactions.innerHTML = "";
+      if (!transactions.length) {
+        tbodyTransactions.innerHTML = '<tr><td colspan="6" class="muted">Islem bulunamadi.</td></tr>';
+        return;
+      }
+
+      for (const transaction of transactions) {
+        const product = productsIndex.get(transaction.product_id);
+        const productLabel = product ? `${product.product_code} - ${product.name}` : transaction.product_id;
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${new Date(transaction.created_at).toLocaleString("tr-TR")}</td>
+          <td>${productLabel}</td>
+          <td><span class="pill">${transaction.action}</span></td>
+          <td>${transaction.quantity}</td>
+          <td>${formatMoney(transaction.total_price)}</td>
+          <td>${transaction.note || "-"}</td>
+        `;
+        tbodyTransactions.appendChild(row);
       }
     }
 
@@ -376,7 +454,7 @@
       setStatus("Veriler yukleniyor...");
       const { data, error } = await client
         .from("products")
-        .select("id,product_code,name,category,quantity,min_stock,unit_price")
+        .select("id,product_code,name,category,quantity,min_stock,unit_price,is_active")
         .order("created_at", { ascending: false });
 
       if (error) {
@@ -384,9 +462,13 @@
         return;
       }
 
-      const products = data || [];
-      renderProducts(products);
-      updateStats(products);
+      allProducts = data || [];
+      productsIndex = new Map(allProducts.map((product) => [product.id, product]));
+
+      const activeProducts = allProducts.filter((product) => product.is_active !== false);
+      renderProducts(activeProducts);
+      updateStats(activeProducts);
+      historySection.style.display = "none";
       setStatus("Liste guncellendi.");
     }
 
@@ -409,7 +491,26 @@
 
       renderProducts(lowProducts);
       statLow.textContent = String(lowProducts.length);
+      historySection.style.display = "none";
       setStatus("Dusuk stok listesi gosterildi.");
+    }
+
+    async function loadTransactions() {
+      setStatus("Islem gecmisi yukleniyor...");
+      const { data, error } = await client
+        .from("stock_transactions")
+        .select("id,product_id,action,quantity,unit_price,total_price,note,created_at")
+        .order("created_at", { ascending: false })
+        .limit(25);
+
+      if (error) {
+        setStatus("Islem gecmisi cekilirken hata: " + error.message, true);
+        return;
+      }
+
+      historySection.style.display = "block";
+      renderTransactions(data || []);
+      setStatus("Islem gecmisi gosterildi.");
     }
 
     function collectForm() {
@@ -434,6 +535,174 @@
       return "";
     }
 
+    function clearForm() {
+      document.getElementById("fCode").value = "";
+      document.getElementById("fName").value = "";
+      document.getElementById("fSupplier").value = "";
+      document.getElementById("fPrice").value = "10";
+      document.getElementById("fQty").value = "1";
+      document.getElementById("fMin").value = "5";
+      document.getElementById("fCategory").value = "electronics";
+      setStatus("Form temizlendi.");
+    }
+
+    async function writeTransaction(product, action, quantity, note) {
+      const { error } = await client.from("stock_transactions").insert([
+        {
+          product_id: product.id,
+          action,
+          quantity,
+          unit_price: Number(product.unit_price || 0),
+          note
+        }
+      ]);
+
+      if (error) {
+        throw new Error(error.message);
+      }
+    }
+
+    async function sellProduct(productId) {
+      const product = productsIndex.get(productId);
+      if (!product) {
+        setStatus("Urun bulunamadi.", true);
+        return;
+      }
+
+      const quantity = Number(prompt(`${product.name} icin satis miktari:`, "1"));
+      if (!Number.isFinite(quantity) || quantity <= 0) {
+        setStatus("Gecerli bir miktar girilmedi.", true);
+        return;
+      }
+      if (quantity > Number(product.quantity || 0)) {
+        setStatus("Stok yetersiz.", true);
+        return;
+      }
+
+      setStatus("Satis yapiliyor...");
+      const nextQuantity = Number(product.quantity || 0) - quantity;
+
+      const { error: updateError } = await client
+        .from("products")
+        .update({ quantity: nextQuantity })
+        .eq("id", productId);
+
+      if (updateError) {
+        setStatus("Satis guncellenemedi: " + updateError.message, true);
+        return;
+      }
+
+      try {
+        await writeTransaction(product, "SALE", quantity, "Vercel demo satisi");
+      } catch (error) {
+        setStatus("Islem gecmisi yazilamadi: " + error.message, true);
+        await loadProducts();
+        return;
+      }
+
+      setStatus("Satis basarili.");
+      await loadProducts();
+    }
+
+    async function restockProduct(productId) {
+      const product = productsIndex.get(productId);
+      if (!product) {
+        setStatus("Urun bulunamadi.", true);
+        return;
+      }
+
+      const quantity = Number(prompt(`${product.name} icin stok miktari:`, "1"));
+      if (!Number.isFinite(quantity) || quantity <= 0) {
+        setStatus("Gecerli bir miktar girilmedi.", true);
+        return;
+      }
+
+      setStatus("Stok artiriliyor...");
+      const nextQuantity = Number(product.quantity || 0) + quantity;
+
+      const { error: updateError } = await client
+        .from("products")
+        .update({ quantity: nextQuantity })
+        .eq("id", productId);
+
+      if (updateError) {
+        setStatus("Stok guncellenemedi: " + updateError.message, true);
+        return;
+      }
+
+      try {
+        await writeTransaction(product, "RESTOCK", quantity, "Vercel demo stok artisi");
+      } catch (error) {
+        setStatus("Islem gecmisi yazilamadi: " + error.message, true);
+        await loadProducts();
+        return;
+      }
+
+      setStatus("Stok artirildi.");
+      await loadProducts();
+    }
+
+    async function deleteProduct(productId) {
+      const product = productsIndex.get(productId);
+      if (!product) {
+        setStatus("Urun bulunamadi.", true);
+        return;
+      }
+
+      if (!confirm(`${product.name} urunu silinsin mi?`)) {
+        return;
+      }
+
+      setStatus("Urun pasife aliniyor...");
+
+      try {
+        await writeTransaction(product, "DELETE", Math.max(1, Number(product.quantity || 0)), "Vercel demo soft delete");
+      } catch (error) {
+        setStatus("Silme gecmisi yazilamadi: " + error.message, true);
+        return;
+      }
+
+      const { error } = await client
+        .from("products")
+        .update({ is_active: false })
+        .eq("id", productId);
+
+      if (error) {
+        setStatus("Urun silinemedi: " + error.message, true);
+        return;
+      }
+
+      setStatus("Urun silindi (pasife alindi).");
+      await loadProducts();
+    }
+
+    function showSummary() {
+      const activeProducts = allProducts.filter((product) => product.is_active !== false);
+      const totalQty = activeProducts.reduce((sum, product) => sum + Number(product.quantity || 0), 0);
+      const lowCount = activeProducts.filter((product) => Number(product.quantity || 0) <= Number(product.min_stock || 0)).length;
+
+      setStatus(`Ozet: ${activeProducts.length} aktif urun, ${totalQty} toplam stok, ${lowCount} dusuk stoklu urun.`);
+      historySection.style.display = "none";
+    }
+
+    tbody.addEventListener("click", async (event) => {
+      const button = event.target.closest("button[data-action]");
+      if (!button) {
+        return;
+      }
+
+      const productId = button.dataset.id;
+      const action = button.dataset.action;
+
+      if (action === "sell") {
+        await sellProduct(productId);
+      } else if (action === "restock") {
+        await restockProduct(productId);
+      } else if (action === "delete") {
+        await deleteProduct(productId);
+      }
+    });
+
     async function addProduct() {
       const product = collectForm();
       const validationError = validateProduct(product);
@@ -457,6 +726,9 @@
     document.getElementById("btnRefresh").addEventListener("click", loadProducts);
     document.getElementById("btnLoadLow").addEventListener("click", loadLowStock);
     document.getElementById("btnAdd").addEventListener("click", addProduct);
+    document.getElementById("btnHistory").addEventListener("click", loadTransactions);
+    document.getElementById("btnSummary").addEventListener("click", showSummary);
+    document.getElementById("btnResetForm").addEventListener("click", clearForm);
 
     loadProducts();
   </script>

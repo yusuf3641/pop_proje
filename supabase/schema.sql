@@ -12,6 +12,7 @@ create table if not exists public.products (
   unit_price numeric(12,2) not null check (unit_price >= 0),
   quantity integer not null default 0 check (quantity >= 0),
   min_stock integer not null default 5 check (min_stock >= 0),
+  is_active boolean not null default true,
   brand text,
   warranty_months integer,
   expiry_date date,
@@ -51,8 +52,11 @@ execute function public.set_updated_at();
 
 create index if not exists idx_products_category on public.products(category);
 create index if not exists idx_products_quantity on public.products(quantity);
+create index if not exists idx_products_is_active on public.products(is_active);
 create index if not exists idx_transactions_product_id on public.stock_transactions(product_id);
 create index if not exists idx_transactions_created_at on public.stock_transactions(created_at desc);
+
+alter table public.products add column if not exists is_active boolean not null default true;
 
 alter table public.products enable row level security;
 alter table public.stock_transactions enable row level security;
@@ -78,6 +82,13 @@ for update
 to anon
 using (true)
 with check (true);
+
+drop policy if exists products_delete_anon on public.products;
+create policy products_delete_anon
+on public.products
+for delete
+to anon
+using (true);
 
 drop policy if exists stock_transactions_select_anon on public.stock_transactions;
 create policy stock_transactions_select_anon
@@ -105,14 +116,15 @@ select
   (p.min_stock - p.quantity) as missing_qty,
   p.updated_at
 from public.products p
-where p.quantity <= p.min_stock;
+where p.quantity <= p.min_stock
+  and coalesce(p.is_active, true) = true;
 
 insert into public.products
-(product_code, name, category, supplier, unit_price, quantity, min_stock, brand, warranty_months, expiry_date, storage_info, material, reusable)
+(product_code, name, category, supplier, unit_price, quantity, min_stock, is_active, brand, warranty_months, expiry_date, storage_info, material, reusable)
 values
-('ELEC-001', 'Laptop', 'electronics', 'TeknoMarket', 37999.90, 8, 5, 'Lenovo', 24, null, null, null, null),
-('FOOD-001', 'Milk', 'food', 'FreshFarm', 32.50, 3, 5, null, null, '2026-05-01', 'Keep refrigerated', null, null),
-('OFF-001', 'Notebook', 'office', 'OfficePlus', 24.75, 12, 6, null, null, null, null, 'Paper', true)
+('ELEC-001', 'Laptop', 'electronics', 'TeknoMarket', 37999.90, 8, 5, true, 'Lenovo', 24, null, null, null, null),
+('FOOD-001', 'Milk', 'food', 'FreshFarm', 32.50, 3, 5, true, null, null, '2026-05-01', 'Keep refrigerated', null, null),
+('OFF-001', 'Notebook', 'office', 'OfficePlus', 24.75, 12, 6, true, null, null, null, null, 'Paper', true)
 on conflict (product_code) do nothing;
 
 insert into public.stock_transactions (product_id, action, quantity, unit_price, note)
