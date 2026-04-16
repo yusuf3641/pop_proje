@@ -23,6 +23,8 @@ create table if not exists public.products (
   updated_at timestamptz not null default now()
 );
 
+alter table public.products add column if not exists is_active boolean not null default true;
+
 create table if not exists public.stock_transactions (
   id bigserial primary key,
   product_id uuid not null references public.products(id) on delete cascade,
@@ -55,8 +57,6 @@ create index if not exists idx_products_quantity on public.products(quantity);
 create index if not exists idx_products_is_active on public.products(is_active);
 create index if not exists idx_transactions_product_id on public.stock_transactions(product_id);
 create index if not exists idx_transactions_created_at on public.stock_transactions(created_at desc);
-
-alter table public.products add column if not exists is_active boolean not null default true;
 
 alter table public.products enable row level security;
 alter table public.stock_transactions enable row level security;
