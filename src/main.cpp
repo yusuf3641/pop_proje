@@ -61,6 +61,15 @@ bool readBool(const std::string& prompt) {
     return toBool(value);
 }
 
+bool saveInventory(Inventory& inventory, const std::string& databasePath) {
+    if (inventory.saveToFile(databasePath)) {
+        return true;
+    }
+
+    std::cout << "Veri diske yazilamadi.\n";
+    return false;
+}
+
 void addProductMenu(Inventory& inventory) {
     std::cout << "\nUrun turu sec:\n";
     std::cout << "1. Electronics\n";
@@ -130,6 +139,7 @@ int main() {
 
     if (!inventory.loadFromFile(databasePath)) {
         inventory.seedDemoData();
+        saveInventory(inventory, databasePath);
     }
 
     std::cout << "\nInventory Management System basladi.\n";
@@ -148,18 +158,22 @@ int main() {
         switch (choice) {
             case 1:
                 addProductMenu(inventory);
+                saveInventory(inventory, databasePath);
                 break;
             case 2:
                 inventory.listProducts(std::cout);
                 break;
             case 3:
                 sellProductMenu(inventory);
+                saveInventory(inventory, databasePath);
                 break;
             case 4:
                 restockMenu(inventory);
+                saveInventory(inventory, databasePath);
                 break;
             case 5:
                 deleteMenu(inventory);
+                saveInventory(inventory, databasePath);
                 break;
             case 6:
                 inventory.printLowStockReport(std::cout, 5);
@@ -171,7 +185,7 @@ int main() {
                 inventory.printSummary(std::cout);
                 break;
             case 9:
-                if (inventory.saveToFile(databasePath)) {
+                if (saveInventory(inventory, databasePath)) {
                     std::cout << "Veri kaydedildi. Cikis yapiliyor.\n";
                 } else {
                     std::cout << "Kayit basarisiz ama program kapatiliyor.\n";
