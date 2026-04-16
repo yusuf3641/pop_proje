@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Inventory Management System</title>
+  <style>
+    :root {
+      --bg: #f4f7f1;
+      --card: #ffffff;
+      --text: #1f2a1f;
+      --muted: #4d5a4e;
+      --accent: #2e6f40;
+      --border: #d9e2d6;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top left, #e8f0e7, var(--bg));
+      color: var(--text);
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+
+    .card {
+      width: min(780px, 100%);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px;
+      box-shadow: 0 14px 30px rgba(26, 44, 28, 0.12);
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: clamp(26px, 3.8vw, 38px);
+      color: var(--accent);
+      letter-spacing: 0.2px;
+    }
+
+    p {
+      margin: 0 0 12px;
+      line-height: 1.6;
+      color: var(--muted);
+    }
+
+    ul {
+      margin: 8px 0 0;
+      padding-left: 22px;
+      line-height: 1.6;
+      color: var(--text);
+    }
+
+    .footer {
+      margin-top: 18px;
+      font-size: 14px;
+      color: #667466;
+    }
+
+    code {
+      background: #eef4eb;
+      border: 1px solid #d8e3d5;
+      padding: 2px 6px;
+      border-radius: 6px;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <h1>Inventory Management System</h1>
+    <p>
+      Bu sayfa Vercel yayini icin eklendi. Projenin asil kismi C++ tarafinda bir OOP
+      konsol uygulamasi olarak gelistirildi.
+    </p>
+    <p>Bu depoda bulunan ana dosyalar:</p>
+    <ul>
+      <li><code>src/main.cpp</code> - Menu ve uygulama akisi</li>
+      <li><code>src/Inventory.cpp</code> - Stok islemleri</li>
+      <li><code>include/models.hpp</code> - Sinif modelleri</li>
+      <li><code>README.md</code> - Turkce rapor/kurulum notlari</li>
+    </ul>
+    <p class="footer">
+      Not: Daha sonra istenirse bu yapi React/Vite arayuzu ve Supabase sorgulari ile
+      genisletilebilir.
+    </p>
+  </main>
+</body>
+</html>
